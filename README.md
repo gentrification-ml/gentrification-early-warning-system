@@ -2,23 +2,37 @@
 
 ## 1. Project Overview
 
-The **Gentrification Early Warning System** is a machine learning project that aims to identify areas that may be at risk of gentrification using demographic, socioeconomic, and housing-related indicators.
+The Gentrification Early Warning System is a machine learning project that explores how demographic, socioeconomic, and housing-related indicators can be used to identify areas associated with potential gentrification risk.
 
-The project compares multiple machine learning algorithms and investigates whether engineered housing affordability features improve prediction performance. It also includes an interactive prediction demo.
+The project compares four machine learning algorithms using nine original features and an enhanced set of eleven features, including two engineered housing affordability ratios. It also includes an interactive prediction demo.
+
+This project is inspired by the research paper *A Proximity-Based Early Warning System for Gentrification in California* (2018). It is a simplified prototype and does not reproduce the paper's complete methodology.
 
 ## 2. Objectives
 
-- Identify areas with potential gentrification risk.
-- Analyse socioeconomic, demographic, and housing indicators.
-- Compare the performance of different machine learning algorithms.
-- Evaluate the effect of engineered affordability features.
+- Explore socioeconomic and housing indicators associated with gentrification.
+- Train and compare multiple machine learning classifiers.
+- Investigate whether two additional affordability features improve model performance.
+- Evaluate the models using classification metrics and visualisations.
 - Demonstrate predictions using user-provided input values.
 
 ## 3. Dataset and Features
 
-The dataset contains socioeconomic and housing-related indicators used to train and evaluate the classification models.
+The project uses the existing dataset `balanced_training_dataset.csv`.
+
+The original CSV contains 1,152 rows and 30 columns, including demographic indicators, housing statistics, derived changes, and the binary target `gentrification`.
+
+The notebook checks for duplicate Census tract IDs and retains one record per tract before splitting the data into training and testing sets. This leaves 624 unique tracts.
+
+**Class distribution after duplicate removal:**
+- No gentrification label (`0`): 576 records
+- Gentrification label (`1`): 48 records
+
+Although the CSV filename contains the word "balanced", the deduplicated dataset is imbalanced. The notebook addresses this by oversampling the minority class in the training set only. The test set remains unchanged.
 
 ### Original Features
+
+The nine original features use 2012 baseline values:
 
 1. Total population
 2. Median household income
@@ -32,29 +46,35 @@ The dataset contains socioeconomic and housing-related indicators used to train 
 
 ### Engineered Features
 
-The project introduces two additional features:
+The project adds two housing affordability features:
 
 - **Home Value-to-Income Ratio:** Median home value divided by median household income.
-- **Annual Rent-to-Income Ratio:** Annualised median gross rent divided by median household income.
+- **Annual Rent-to-Income Ratio:** Monthly median gross rent multiplied by 12 and divided by median household income.
 
-These features represent housing costs relative to household income.
+Both ratios use 2012 baseline values. The notebook compares the original nine-feature models with the enhanced eleven-feature models.
 
-The notebook compares models using the original nine features and the enhanced eleven-feature set.
+### Important Dataset Limitation
+
+In the supplied dataset, the `gentrification` target matches the combination of three indicator columns: `baseline_low_income`, `high_rent_increase`, and `high_education_or_home_value_increase`.
+
+The labels are not independently verified real-world future outcomes. Consequently, the model learns patterns associated with the supplied labels; its results should not be interpreted as proof that an area will experience future gentrification.
 
 ## 4. Machine Learning Models
 
-The following algorithms are compared:
+The project compares four classification algorithms:
 
 - Logistic Regression
 - Decision Tree
 - Random Forest
 - XGBoost
 
-The notebook includes data preprocessing, model training, and performance evaluation.
+The notebook includes data cleaning, training and testing splits, missing-value imputation, training-only oversampling, feature engineering, model training, and evaluation.
+
+The same stratified 80/20 train-test split settings are used for the nine-feature and eleven-feature experiments.
 
 ## 5. Model Evaluation
 
-Model performance is examined using:
+The models are evaluated using:
 
 - Accuracy
 - Precision
@@ -63,72 +83,105 @@ Model performance is examined using:
 - ROC-AUC
 - Confusion matrices
 - ROC curves
-- Feature importance analysis, where applicable
+- Feature importance and permutation importance analyses
 
-These metrics help evaluate both overall classification performance and the models' ability to identify positive gentrification labels.
+The results are generated by the notebook when its cells are executed.
+
+The held-out test set contains only 10 positive-labelled examples. Therefore, a change of one correctly detected positive case changes positive-class recall by 10 percentage points. Results should be interpreted cautiously, especially when comparing minority-class detection.
+
+Adding engineered features does not necessarily improve every model or every evaluation metric.
 
 ## 6. Interactive Prediction Demo
 
-The notebook includes an input-based prediction demo. Users provide socioeconomic and housing-related values, and the system calculates the engineered features before generating a prediction.
+The notebook includes an interactive demo using the enhanced eleven-feature Random Forest model.
 
-The output represents a model-estimated risk based on the training data. It is not a guarantee that gentrification will occur.
+Users enter values for the nine original 2012 features. The notebook calculates the two affordability ratios automatically and generates a prediction and model score.
+
+The displayed score is **not a calibrated real-world probability**. A prediction is a model output based on the training data and should not be treated as a guarantee that gentrification will occur.
 
 ## 7. Technologies Used
 
 - Python
-- Google Colab / Jupyter Notebook
+- Google Colab or Jupyter Notebook
 - Pandas
 - NumPy
+- Matplotlib
 - Scikit-learn
 - XGBoost
-- Matplotlib
-- Seaborn
 
 ## 8. Setup and Execution
 
 ### Requirements
 
-- A Google account to use Google Colab, or a local Jupyter Notebook environment.
-- The project notebook.
-- The dataset file `balanced_training_dataset.csv`.
-- The Python libraries required by the notebook.
+- Python environment or Google Colab
+- The project notebook
+- The existing dataset file `balanced_training_dataset.csv`
+- The Python libraries used by the notebook
+
+### Install Dependencies Locally
+
+Run the following command in your terminal or notebook environment if the required packages are not already installed:
+
+```bash
+pip install pandas numpy matplotlib scikit-learn xgboost jupyter
+```
 
 ### Running in Google Colab
 
-1. Open the project notebook in Google Colab.
-2. Make the dataset `balanced_training_dataset.csv` available to the notebook.
-3. Check the dataset-loading cell and ensure the file path matches the location of the dataset.
-4. Install any missing dependencies if the notebook does not already install them.
-5. Run the notebook cells in order.
-6. Review the evaluation metrics, confusion matrices, ROC curves, and feature importance results.
-7. Execute the interactive prediction section and provide the required input values.
+1. Open `Gentrification_Early_Warning_System_FINAL.ipynb` in Google Colab.
+2. Upload `balanced_training_dataset.csv` to the Colab session, or place it in the expected location.
+3. Check that the dataset-loading cell finds the correct CSV.
+4. Run the notebook cells from top to bottom.
+5. Review the metrics, confusion matrices, ROC curves, and feature importance results.
+6. Run the interactive demo and enter the requested values.
 
-**Important:** The dataset must be loaded using the path expected by the notebook. If the notebook uses Google Drive, upload the dataset there and update the path as needed.
+### Running Locally
+
+1. Place the notebook and `balanced_training_dataset.csv` in the same directory.
+2. Install the dependencies listed above.
+3. Open Jupyter Notebook or JupyterLab.
+4. Open `Gentrification_Early_Warning_System_FINAL.ipynb`.
+5. Execute the cells in order.
+
+The dataset must retain its expected column names. If it is stored in a different directory, update the dataset path in the loading cell.
 
 ## 9. Project Structure
 
-The repository contains the project notebook, dataset, and README.
+The main project files are:
 
-- `README.md` — Project overview, methodology, and execution instructions.
-- `balanced_training_dataset.csv` — Dataset used by the notebook.
-- `Gentrification_Early_Warning_System_DEMO_READY.ipynb` — Main notebook for preprocessing, feature engineering, model training, evaluation, and prediction demo.
+```text
+gentrification-early-warning-system/
+├── Gentrification_Early_Warning_System_FINAL.ipynb
+├── balanced_training_dataset.csv
+└── README.md
+```
 
-The notebook filename above should be updated if the actual filename in the repository differs.
+The notebook contains data preprocessing, baseline and enhanced model experiments, evaluation visualisations, feature importance analysis, and the interactive prediction demo.
+
+Add the final report and presentation to the repository if they are required for your submission.
 
 ## 10. Reference Research
 
 **A Proximity-Based Early Warning System for Gentrification in California** — Aakash Pattabi (2018).
 
-This research provides background for the project's early-warning approach. The current project uses socioeconomic and housing indicators with engineered affordability-related features. It should not be considered a reproduction of the reference paper's complete methodology.
+The research provides the background for this project's early-warning approach. The original paper uses separate future outcomes and spatial-neighbour features.
+
+The current project is a simplified adaptation using the supplied binary target and two affordability-related engineered features. It does not implement the paper's complete spatial analysis or forecasting methodology.
 
 ## 11. Limitations
 
-- Predictions depend on the quality and representativeness of the available dataset.
-- The model identifies statistical patterns and does not establish that gentrification will occur.
-- Performance metrics should be interpreted alongside class distribution and minority-class results.
+- The dataset may not fully represent real-world neighbourhood conditions.
+- The target labels are not independently verified future outcomes.
+- Duplicate removal leaves an imbalanced dataset, with only 48 positive-labelled unique tracts.
+- The test set contains only 10 positive-labelled examples.
 - The engineered affordability ratios do not capture every factor influencing gentrification.
-- Further validation on independent, geographically and temporally distinct data would be needed before real-world use.
+- The results do not establish causation or guarantee future outcomes.
+- Further validation using independent, geographically and temporally distinct data is required before any real-world application.
 
 ## 12. Conclusion
 
-This project demonstrates how machine learning can be applied to the early identification of potential gentrification risk using socioeconomic and housing indicators. By comparing multiple classifiers and testing engineered affordability features, the project provides a prototype for further research and development.
+This project demonstrates a machine learning workflow for exploring gentrification-related patterns in socioeconomic and housing indicators.
+
+It compares four classification algorithms, evaluates two affordability-related engineered features, and provides an interactive prediction demo. The results illustrate how model selection and feature engineering can affect classification performance.
+
+The system should be treated as an educational prototype for further investigation rather than a validated real-world gentrification forecasting tool.
